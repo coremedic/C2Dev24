@@ -20,7 +20,7 @@ func (h *HttpListener) getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	h.requestLog.Printf("Time: %v, Method: %s, URL: %s, RemoteAddr: %s\n", time.Now(), r.Method, r.URL, r.RemoteAddr)
 	task := map[string]interface{}{
 		"cmd":  "echo",
-		"args": []string{"latest", "config"},
+		"args": []string{"hello world"},
 	}
 	jsonData, err := json.Marshal(task)
 	if err != nil {
@@ -34,18 +34,13 @@ func (h *HttpListener) getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-func (h *HttpListener) handler(w http.ResponseWriter, r *http.Request) {
-	if id := r.Header.Get("Cookie"); id != "" {
-		switch id {
-		case "gt":
-			h.getTasksHandler(w, r)
-		default:
-			return
-		}
-	}
-}
-
 func (h *HttpListener) StartListener() {
+	// Ensure the directory exists
+	err := os.MkdirAll("c2/data", 0755) // Adjust the permissions as needed
+	if err != nil {
+		log.Fatalf("Error creating directories: %s", err.Error())
+	}
+
 	// open log file for listener
 	logFile, err := os.OpenFile("c2/data/listener.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -56,11 +51,15 @@ func (h *HttpListener) StartListener() {
 	h.errorLog = log.New(logFile, "ERROR: ", log.LstdFlags)
 	h.requestLog = log.New(logFile, "REQUEST: ", log.LstdFlags)
 
-	// init server
+	// init server with routing
+	mux := http.NewServeMux()
+	// register handlers
+	mux.HandleFunc("/task", h.getTasksHandler)
+
 	server := &http.Server{
 		Addr:     fmt.Sprintf("%s:%s", h.Ip, h.Port),
 		ErrorLog: h.errorLog,
-		Handler:  http.HandlerFunc(h.handler),
+		Handler:  mux,
 	}
 
 	// start listening
