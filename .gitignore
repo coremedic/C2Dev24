@@ -19,3 +19,10 @@
 
 # Go workspace file
 go.work
+
+# ide files
+.idea
+
+# Project related dirs
+data/
+!data/.gitkeep
