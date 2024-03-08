@@ -58,7 +58,10 @@ func (am *SafeAgentMap) Dequeue(agentId string) ([]string, error) {
 		return nil, fmt.Errorf("agent '%s' doesnt exist", agentId)
 	}
 	defer am.mtx.Lock()
-	if len(agent.CmdQueue) == 1 {
-
+	if len(agent.CmdQueue) < 1 {
+		return nil, fmt.Errorf("agent '%s' has no queued  commands", agentId)
 	}
+	cmd := agent.CmdQueue[0]
+	agent.CmdQueue = agent.CmdQueue[1:]
+	return cmd, nil
 }
