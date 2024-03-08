@@ -1,6 +1,7 @@
 package c2
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -9,7 +10,7 @@ type Agent struct {
 	Id       string
 	Ip       string
 	LastCall time.Time
-	CmdQueue []string
+	CmdQueue [][]string
 }
 
 type SafeAgentMap struct {
@@ -33,11 +34,31 @@ func (am *SafeAgentMap) Add(agent *Agent) {
 func (am *SafeAgentMap) Get(agentId string) *Agent {
 	am.mtx.Lock()
 	defer am.mtx.Unlock()
-	if agent, exists := am.Agents[agentId]; !exists {
+	if agent, exists := am.Agents[agentId]; exists {
 		return agent
 	}
 	return nil
 }
 
-// SafeAgentMap.Queue queues a command for the agent
-//func (am *SafeAgentMap) Queue()
+// SafeAgentMap.Enqueue queues a command for the agent
+func (am *SafeAgentMap) Enqueue(agentId string, cmd []string) error {
+	agent := am.Get(agentId)
+	if agent == nil {
+		return fmt.Errorf("agent '%s' doesnt exist", agentId)
+	}
+	defer am.mtx.Lock()
+	agent.CmdQueue = append(agent.CmdQueue, cmd)
+	return nil
+}
+
+// SafeAgentMap.Dequeue dequeues a command from the command queue
+func (am *SafeAgentMap) Dequeue(agentId string) ([]string, error) {
+	agent := am.Get(agentId)
+	if agent == nil {
+		return nil, fmt.Errorf("agent '%s' doesnt exist", agentId)
+	}
+	defer am.mtx.Lock()
+	if len(agent.CmdQueue) == 1 {
+
+	}
+}
