@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 )
 
 var helpMenu string = `
@@ -18,6 +19,7 @@ Command                  Description
 -------------------------------------------
 help                     Show this menu
 clear                    Clear the console
+agents                   List active agents
 exit                     Exit C2
 -------------------------------------------
 
@@ -29,6 +31,7 @@ func StartCLI() {
 	autoCompleter := readline.NewPrefixCompleter(
 		readline.PcItem("clear"),
 		readline.PcItem("help"),
+		readline.PcItem("agents"),
 		readline.PcItem("exit"),
 	)
 
@@ -84,6 +87,12 @@ func StartCLI() {
 			{
 				if err := clearConsole(); err != nil {
 					fmt.Println(err)
+				}
+			}
+		case "agents": // List agents logic
+			{
+				for _, agent := range AgentMap.Agents {
+					fmt.Printf("ID: %s IP: %s, Last Call: %.0f\n", agent.Id, agent.Ip, time.Since(agent.LastCall).Seconds())
 				}
 			}
 		}

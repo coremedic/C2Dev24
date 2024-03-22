@@ -16,6 +16,11 @@ type HttpListener struct {
 	requestLog *log.Logger
 }
 
+func (h *HttpListener) checkInHandler(w http.ResponseWriter, r *http.Request) {
+	h.requestLog.Printf("Time: %v, Method: %s, URL: %s, RemoteAddr: %s\n", time.Now(), r.Method, r.URL, r.RemoteAddr)
+
+}
+
 func (h *HttpListener) getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	h.requestLog.Printf("Time: %v, Method: %s, URL: %s, RemoteAddr: %s\n", time.Now(), r.Method, r.URL, r.RemoteAddr)
 	task := map[string]interface{}{

@@ -46,7 +46,8 @@ func (am *SafeAgentMap) Enqueue(agentId string, cmd []string) error {
 	if agent == nil {
 		return fmt.Errorf("agent '%s' doesnt exist", agentId)
 	}
-	defer am.mtx.Lock()
+	am.mtx.Lock()
+	defer am.mtx.Unlock()
 	agent.CmdQueue = append(agent.CmdQueue, cmd)
 	return nil
 }
@@ -57,7 +58,8 @@ func (am *SafeAgentMap) Dequeue(agentId string) ([]string, error) {
 	if agent == nil {
 		return nil, fmt.Errorf("agent '%s' doesnt exist", agentId)
 	}
-	defer am.mtx.Lock()
+	am.mtx.Lock()
+	defer am.mtx.Unlock()
 	if len(agent.CmdQueue) < 1 {
 		return nil, fmt.Errorf("agent '%s' has no queued  commands", agentId)
 	}
