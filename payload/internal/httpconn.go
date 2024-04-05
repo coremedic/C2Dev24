@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	"crypto/tls"
 	"net/http"
 	"net/url"
@@ -69,6 +70,19 @@ func (hc *HttpConn) NewCmdRequest() (*http.Request, error) {
 	}
 
 	req.Header.Set("Cookie", "cmd")
+	req.Header.Set("User-Agent", hc.Id)
+	return req, nil
+}
+
+func (hc *HttpConn) NewResultRequest(data []byte) (*http.Request, error) {
+	body := bytes.NewReader(data)
+
+	req, err := http.NewRequest("GET", hc.host.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Cookie", "ret")
 	req.Header.Set("User-Agent", hc.Id)
 	return req, nil
 }

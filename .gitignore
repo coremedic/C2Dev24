@@ -26,3 +26,6 @@ go.work
 # Project related dirs
 data/
 !data/.gitkeep
+
+windows_x64_payload.exe
+linux_x64_payload
