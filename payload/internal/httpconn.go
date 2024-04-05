@@ -61,3 +61,14 @@ func (hc *HttpConn) NewIdRequest() (*http.Request, error) {
 	req.Header.Set("Cookie", "id")
 	return req, nil
 }
+
+func (hc *HttpConn) NewCmdRequest() (*http.Request, error) {
+	req, err := http.NewRequest("GET", hc.host.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Cookie", "cmd")
+	req.Header.Set("User-Agent", hc.Id)
+	return req, nil
+}
