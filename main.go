@@ -9,6 +9,7 @@ func main() {
 		Ip:   "127.0.0.1",
 		Port: "8080",
 	}
+
 	// Run listener as go routine
 	go listener.StartListener()
 
